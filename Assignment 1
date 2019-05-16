@@ -1,0 +1,21 @@
+import math
+import numpy as np
+import matplotlib as plt
+
+
+#Parameters
+a=-1.0
+b=3.0
+l=2.0
+alpha=0.05
+
+
+
+Asol= [0] *n
+
+
+
+
+for n in range (0,1000):
+
+        Asol[i]

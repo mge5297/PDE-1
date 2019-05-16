@@ -1,0 +1,126 @@
+'''import math
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+import scipi
+import scipi.special'''
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy
+import scipy.special
+#DICK
+
+#Constants
+alpha = 0.5
+a = 2.0
+b = 3.0
+dr = 0.002
+dt = 0.001
+
+
+
+
+#####################################+
+#Arrays
+#T Array
+t0 = 0.0
+troast=1.0
+tend = 1.2
+
+tsteps = int((tend-t0)/dt)+1
+T= [0] * tsteps
+for n in range(0,tsteps-1):
+    T[n+1] = T[n] + dt
+
+#R Array
+r0 = 0.0
+rend = a
+rsteps = int((rend-r0)/dr)+1
+
+R= [0] * rsteps
+R[0] = r0
+for n in range(0,rsteps-1):
+    R[n+1] = R[n] + dr
+
+#####################################
+#Numerical Solution
+BD2 = np.zeros([rsteps,tsteps])  #U[i,n] : U[r,t]#
+
+#RHS
+RHS = np.zeros([rsteps,1])
+RHS[0] = 0   ###BC(Derivative at r = 0)
+RHS[rsteps-1] = b*dr     ###BC(Derivative at r=rend)
+
+A=np.identity(rsteps)
+
+#Initial Conditions
+for i in range (0,rsteps):
+    BD2[i,0]= 0                 ##Initial Condition U(0,r)=0##
+
+for i in range(1,rsteps-1):
+    BD2[i,1] = BD2[i,0] + ((alpha * dt)/ dr**2.0) *(BD2[i+1,0]-(2.0*BD2[i,0])+ BD2[i-1, 0])
+
+
+###########################
+#Matrix A
+A[0,0]=-1.5
+A[0,1]=2
+A[0,2]=-0.5
+A[rsteps-1,rsteps-3]=0.5
+A[rsteps-1,rsteps-2]=-2
+A[rsteps-1,rsteps-1]=1.5
+
+for i in range(1,rsteps-1):
+    #SUB
+    if (i>0):
+        A[i,i-1] = alpha*dt/(2*R[i]*dr)-alpha*dt/(dr**2)
+    #Main
+    A[i,i] = 2*alpha*dt/(dr**2)+1.5
+    
+    #Super
+    if(i>0):
+        A[i,i+1]=-alpha*dt/(2*R[i]*dt)-alpha*dt/(dr**2)
+
+###############################################
+####Solving Numerically####
+
+#This fills my RHS#
+for n in range(1,tsteps-1):
+    for i in range(1,rsteps-1):
+        RHS[i] = 2.0*BD2[i,n]-0.5*BD2[i,n-1]
+        BD2[:,range(n,n+1)]=np.linalg.solve(A,RHS)
+        
+        
+       
+#############################################################################
+#############################################################################
+#############################################################################
+#Analytical Soultion
+U_EX = np.zeros([troast,rsteps])
+
+k = 20,000   #For finding zeros of J1
+psi = scipy.special_jn_zeros(1,k) #psi holds the zeros of J1
+t=tend
+
+
+
+for i in range(0,rsteps):
+    U_EX[i] =b/(2*a)*((R[i])**2) + 2*alpha*b*t/a -b*a/4
+
+    for m in range (1,k):
+        U_EX[i] +=  2.0*b*alpha*(scipy.special.jv(2,psi[m]))/(psi[m]**2*((scipy.special.jv(0,psi[m]))**2))*math.exp(-alpha*psi[m]**2*t/(a**2))*scipy.special.jv(0,psi[m]*R[i]/a)
+
+        
+###############################################################################
+###############################################################################
+############################################################################### 
+#Plots
+plt.plot(R,BD2[:,tsteps-2], linewidth = 3, color = 'blue')
+plt.plot(R,BD2[:,1000], linewidth = 3, color = 'green')
+
+#plt.plot(r, UEX, linewidth = 3 , color = 'orange')
+#plt.plot(r, np.absolute(u_BD2[:,t_steps-1]-u_ana), linewidth = 3 , color = 'red')
+#plt.plot(r, abs(UEX-BD2[:,t_steps-1]), linewidth = 3 , color = 'red')
+plt.show()
+
